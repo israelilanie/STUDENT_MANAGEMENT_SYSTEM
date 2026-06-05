@@ -1,9 +1,11 @@
 package com.israel.studentmanagementsystem.exception;
 
 import com.israel.studentmanagementsystem.dto.response.ErrorResponse;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,7 +19,6 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
 
-    // handles ResourceNotFoundException → 404
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
             ResourceNotFoundException ex,
@@ -34,7 +35,6 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    // handles DuplicateEmailException → 409
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateEmail(
             DuplicateEmailException ex,
@@ -51,7 +51,6 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    // handles BadCredentialsException → 401
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(
             BadCredentialsException ex,
@@ -68,7 +67,6 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    // handles UnauthorizedException → 403
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(
             UnauthorizedException ex,
@@ -85,7 +83,6 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    // handles @Valid validation failures → 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(
             MethodArgumentNotValidException ex,
@@ -112,7 +109,73 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    // catches everything else → 500
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLock(
+            ObjectOptimisticLockingFailureException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(409)
+                        .code("CONCURRENT_MODIFICATION")
+                        .message("This record was modified by someone else. " +
+                                "Please refresh and try again.")
+                        .path(request.getRequestURI())
+                        .build());
+    }
+
+    @ExceptionHandler(OptimisticLockException.class)
+    public ResponseEntity<ErrorResponse> handleJpaOptimisticLock(
+            OptimisticLockException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(409)
+                        .code("CONCURRENT_MODIFICATION")
+                        .message("This record was modified by someone else. " +
+                                "Please refresh and try again.")
+                        .path(request.getRequestURI())
+                        .build());
+    }
+
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(
+            IllegalStateException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(ErrorResponse.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(422)
+                        .code("BUSINESS_RULE_VIOLATION")
+                        .message(ex.getMessage())
+                        .path(request.getRequestURI())
+                        .build());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+            IllegalArgumentException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(400)
+                        .code("INVALID_ARGUMENT")
+                        .message(ex.getMessage())
+                        .path(request.getRequestURI())
+                        .build());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex,
