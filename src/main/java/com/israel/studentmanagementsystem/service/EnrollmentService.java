@@ -1,5 +1,6 @@
 package com.israel.studentmanagementsystem.service;
 
+import com.israel.studentmanagementsystem.config.CacheNames;
 import com.israel.studentmanagementsystem.dto.request.GradeRequest;
 import com.israel.studentmanagementsystem.dto.response.EnrollmentResponse;
 import com.israel.studentmanagementsystem.dto.response.GpaResponse;
@@ -16,6 +17,9 @@ import com.israel.studentmanagementsystem.repository.StudentProfileRepository;
 import com.israel.studentmanagementsystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,8 +37,10 @@ public class EnrollmentService {
     private final UserRepository userRepository;
     private final EnrollmentMapper enrollmentMapper;
     private final GpaService gpaService;
+    private final CacheManager cacheManager;
+    private final EmailService emailService;
 
-
+    @CacheEvict(value = CacheNames.STUDENT_GPA, key = "#email")
     @Transactional
     public EnrollmentResponse enroll(String email, Long courseId) {
 
@@ -69,13 +75,15 @@ public class EnrollmentService {
 
         course.incrementEnrollment();
 
+        emailService.sendEnrollmentEmail(user.getEmail(),user.getFirstName(), course.getTitle(), course.getCode(),course.getSemester());
+
         log.info("Student {} enrolled in course {}",
                 user.getEmail(), course.getCode());
 
         return enrollmentMapper.toResponse(saved);
     }
 
-
+    @CacheEvict(value = CacheNames.STUDENT_GPA, key = "#email")
     @Transactional
     public EnrollmentResponse drop(String email, Long enrollmentId) {
 
@@ -103,6 +111,7 @@ public class EnrollmentService {
 
         log.info("Student {} dropped course {}",
                 user.getEmail(), enrollment.getCourse().getCode());
+        emailService.sendDropEmail(user.getEmail(),user.getFirstName(), enrollment.getCourse().getTitle(), enrollment.getCourse().getCode());
 
         return enrollmentMapper.toResponse(
                 enrollmentRepository.save(enrollment));
@@ -200,10 +209,21 @@ public class EnrollmentService {
                 request.getFinalGrade(),
                 enrollment.getCourse().getCode(),
                 newGpa);
+        String studentEmail = enrollment.getStudent().getUser().getEmail();
+        cacheManager.getCache(CacheNames.STUDENT_GPA).evict(studentEmail);
+
+        emailService.sendGradeEmail(    student.getUser().getEmail(),
+                student.getUser().getFirstName(),
+                enrollment.getCourse().getTitle(),
+                enrollment.getCourse().getCode(),
+                request.getFinalGrade(),
+                gradePoints,
+                newGpa);
 
         return enrollmentMapper.toResponse(saved);
     }
 
+    @Cacheable(value = CacheNames.STUDENT_GPA, key = "#email")
     @Transactional(readOnly = true)
     public GpaResponse getMyGpa(String email) {
 

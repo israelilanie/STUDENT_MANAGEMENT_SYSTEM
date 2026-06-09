@@ -1,6 +1,7 @@
 package com.israel.studentmanagementsystem.service;
 
 
+import com.israel.studentmanagementsystem.config.CacheNames;
 import com.israel.studentmanagementsystem.dto.request.CreateCourseRequest;
 import com.israel.studentmanagementsystem.dto.request.UpdateCourseRequest;
 import com.israel.studentmanagementsystem.dto.response.CourseResponse;
@@ -14,6 +15,9 @@ import com.israel.studentmanagementsystem.mapper.CourseMapper;
 import com.israel.studentmanagementsystem.repository.CourseRepository;
 import com.israel.studentmanagementsystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +34,8 @@ public class CourseService {
     private final TeacherService teacherService;
     private final CourseMapper courseMapper;
 
-
+    @Cacheable(value = CacheNames.COURSES,
+            key = "#search + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     @Transactional(readOnly = true)
     public Page<CourseResponse> searchCourses(
             String search, Pageable pageable) {
@@ -40,12 +45,13 @@ public class CourseService {
                 .map(courseMapper::toResponse);
     }
 
+    @Cacheable(value = CacheNames.COURSE_BY_ID, key = "#id")
     @Transactional(readOnly = true)
     public CourseResponse getCourseById(Long id) {
         return courseMapper.toResponse(loadCourseWithTeacher(id));
     }
 
-
+    @CacheEvict(value = CacheNames.COURSES, allEntries = true)
     @Transactional
     public CourseResponse createCourse(
             CreateCourseRequest request, Long teacherId) {
@@ -84,7 +90,10 @@ public class CourseService {
         return createCourse(request, user.getId());
     }
 
-    // admin or teacher updates a course
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.COURSE_BY_ID, key = "#courseId"),
+            @CacheEvict(value = CacheNames.COURSES, allEntries = true)
+    })
     @Transactional
     public CourseResponse updateCourse(
             Long courseId,
@@ -131,7 +140,10 @@ public class CourseService {
         return courseMapper.toResponse(courseRepository.save(course));
     }
 
-
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.COURSE_BY_ID, key = "#courseId"),
+            @CacheEvict(value = CacheNames.COURSES, allEntries = true)
+    })
     @Transactional
     public CourseResponse archiveCourse(Long courseId) {
         Course course = loadCourseWithTeacher(courseId);

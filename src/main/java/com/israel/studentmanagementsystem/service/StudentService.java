@@ -1,6 +1,7 @@
 package com.israel.studentmanagementsystem.service;
 
 
+import com.israel.studentmanagementsystem.config.CacheNames;
 import com.israel.studentmanagementsystem.dto.request.UpdateStudentProfileRequest;
 import com.israel.studentmanagementsystem.dto.response.StudentProfileResponse;
 import com.israel.studentmanagementsystem.entity.StudentProfile;
@@ -10,6 +11,8 @@ import com.israel.studentmanagementsystem.exception.ResourceNotFoundException;
 import com.israel.studentmanagementsystem.mapper.StudentProfileMapper;
 import com.israel.studentmanagementsystem.repository.StudentProfileRepository;
 import com.israel.studentmanagementsystem.repository.UserRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -43,7 +46,7 @@ public class StudentService {
         return studentProfileRepository.save(profile);
     }
 
-
+    @Cacheable(value = CacheNames.STUDENT_PROFILE, key = "#email")
     @Transactional(readOnly = true)
     public StudentProfileResponse getMyProfile(String email) {
 
@@ -59,6 +62,7 @@ public class StudentService {
         return studentProfileMapper.toResponse(profile);
     }
 
+    @CacheEvict(value = CacheNames.STUDENT_PROFILE, key = "#email")
     @Transactional
     public StudentProfileResponse updateMyProfile(
             String email,

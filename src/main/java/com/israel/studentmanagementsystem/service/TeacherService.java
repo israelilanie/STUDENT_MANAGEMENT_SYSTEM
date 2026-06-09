@@ -1,5 +1,6 @@
 package com.israel.studentmanagementsystem.service;
 
+import com.israel.studentmanagementsystem.config.CacheNames;
 import com.israel.studentmanagementsystem.dto.request.CreateTeacherRequest;
 import com.israel.studentmanagementsystem.dto.request.UpdateTeacherProfileRequest;
 import com.israel.studentmanagementsystem.dto.response.TeacherProfileResponse;
@@ -13,6 +14,8 @@ import com.israel.studentmanagementsystem.mapper.TeacherProfileMapper;
 import com.israel.studentmanagementsystem.repository.TeacherProfileRepository;
 import com.israel.studentmanagementsystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +63,7 @@ public class TeacherService {
         return teacherProfileMapper.toResponse(saved);
     }
 
+    @Cacheable(value = CacheNames.TEACHER_PROFILE, key = "#email")
     @Transactional(readOnly = true)
     public TeacherProfileResponse getMyProfile(String email) {
 
@@ -75,7 +79,7 @@ public class TeacherService {
         return teacherProfileMapper.toResponse(profile);
     }
 
-
+    @CacheEvict(value = CacheNames.TEACHER_PROFILE, key = "#email")
     @Transactional
     public TeacherProfileResponse updateMyProfile(
             String email,

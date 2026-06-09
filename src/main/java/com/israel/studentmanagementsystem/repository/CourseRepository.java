@@ -58,4 +58,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByTeacherIdAndStatus(
             @Param("teacherId") Long teacherId,
             @Param("status") CourseStatus status);
+
+    Long countByStatus(CourseStatus status);
 }

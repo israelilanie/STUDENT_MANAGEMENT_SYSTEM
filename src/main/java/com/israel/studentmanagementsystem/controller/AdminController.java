@@ -1,8 +1,8 @@
 package com.israel.studentmanagementsystem.controller;
 
 import com.israel.studentmanagementsystem.dto.request.CreateTeacherRequest;
-import com.israel.studentmanagementsystem.dto.response.StudentProfileResponse;
-import com.israel.studentmanagementsystem.dto.response.TeacherProfileResponse;
+import com.israel.studentmanagementsystem.dto.response.*;
+import com.israel.studentmanagementsystem.service.ReportService;
 import com.israel.studentmanagementsystem.service.StudentService;
 import com.israel.studentmanagementsystem.service.TeacherService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +23,33 @@ import java.util.List;
 public class AdminController {
     private final TeacherService teacherService;
     private final StudentService studentService;
+    private final ReportService reportService;
+
+    @GetMapping("/reports/overview")
+    @Operation(summary = "System overview report — ADMIN only")
+    public ResponseEntity<OverviewReportResponse> getOverview() {
+        return ResponseEntity.ok(reportService.getOverview());
+    }
+
+    @GetMapping("/reports/courses/{courseId}")
+    @Operation(summary = "Course detailed report — ADMIN only")
+    public ResponseEntity<CourseReportResponse> getCourseReport(
+            @PathVariable Long courseId) {
+        return ResponseEntity.ok(reportService.getCourseReport(courseId));
+    }
+
+    @GetMapping("/reports/gpa-distribution")
+    @Operation(summary = "GPA distribution report — ADMIN only")
+    public ResponseEntity<GpaDistributionResponse> getGpaDistribution() {
+        return ResponseEntity.ok(reportService.getGpaDistribution());
+    }
+
+    @GetMapping("/students/{id}/transcript")
+    @Operation(summary = "Get student transcript — ADMIN only")
+    public ResponseEntity<TranscriptResponse> getStudentTranscript(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(reportService.getTranscript(id));
+    }
 
     @PostMapping("/teachers")
     @Operation(summary = "Create a teacher account — ADMIN only")

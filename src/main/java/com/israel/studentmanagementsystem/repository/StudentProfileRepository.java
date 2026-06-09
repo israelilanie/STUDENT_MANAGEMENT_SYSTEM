@@ -27,4 +27,6 @@ public interface StudentProfileRepository
         WHERE sp.user.id = :userId
         """)
     Optional<StudentProfile> findByUserIdWithUser(Long userId);
+
+    Long countByStatus(StudentStatus status);
 }

@@ -28,6 +28,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
     private final StudentService studentService;
+    private final EmailService emailService;
 
     @Transactional
     public AuthResponse register(RegisterRequest registerRequest) {
@@ -46,6 +47,7 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
         studentService.createProfile(savedUser);
+        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFirstName());
         String token = jwtUtil.generateToken(savedUser.getEmail(),savedUser.getRole().toString());
 
         return new AuthResponse(token,"Bearer",userMapper.toResponse(savedUser));
