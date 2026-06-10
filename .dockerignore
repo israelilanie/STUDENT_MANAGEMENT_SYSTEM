@@ -1,0 +1,11 @@
+target/
+*.mv.db
+*.trace.db
+devdb*
+testdb*
+uploads/
+.git/
+.gitignore
+*.md
+.idea/
+*.iml
