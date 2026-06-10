@@ -45,4 +45,12 @@ public class StudentProfile {
 
     @Version
     private Integer version;
+
+    @Column(length = 500)
+    private String avatarUrl;
 }
+
+
+
+
+

@@ -11,10 +11,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,6 +29,18 @@ public class StudentController {
 
     private final StudentService studentService;
     private final ReportService reportService;
+
+    @PostMapping(value = "/student/avatar",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload profile photo — STUDENT only")
+    public ResponseEntity<StudentProfileResponse> uploadAvatar(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam("file") MultipartFile file) {
+
+        return ResponseEntity.ok(
+                studentService.uploadAvatar(
+                        userDetails.getUsername(), file));
+    }
 
     @GetMapping("/student/transcript")
     @Operation(summary = "My academic transcript — STUDENT only")

@@ -32,4 +32,7 @@ public class StudentProfileResponse {
 
     @Schema(description = "Student status", example = "ACTIVE")
     private StudentStatus status;
+
+    @Schema(description = "Avatar URL from S3", example = "https://bucket.s3.region.amazonaws.com/avatars/...")
+    private String avatarUrl;
 }

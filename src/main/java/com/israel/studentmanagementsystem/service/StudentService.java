@@ -11,12 +11,14 @@ import com.israel.studentmanagementsystem.exception.ResourceNotFoundException;
 import com.israel.studentmanagementsystem.mapper.StudentProfileMapper;
 import com.israel.studentmanagementsystem.repository.StudentProfileRepository;
 import com.israel.studentmanagementsystem.repository.UserRepository;
+import com.israel.studentmanagementsystem.service.storage.S3StorageService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -29,8 +31,36 @@ public class StudentService {
     private final UserRepository userRepository;
     private final StudentProfileMapper studentProfileMapper;
     private final StudentNumberGenerator studentNumberGenerator;
+    private final S3StorageService s3StorageService;
 
-    // called internally when a new student registers
+    @CacheEvict(value = CacheNames.STUDENT_PROFILE, key = "#email")
+    @Transactional
+    public StudentProfileResponse uploadAvatar(
+            String email, MultipartFile file) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
+
+        StudentProfile profile = studentProfileRepository
+                .findByUserId(user.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Student profile not found"));
+
+        if (profile.getAvatarUrl() != null) {
+            s3StorageService.deleteFile(profile.getAvatarUrl());
+        }
+
+        // upload new file to S3
+        String avatarUrl = s3StorageService.uploadAvatar(file, profile.getId());
+
+        // save URL in database
+        profile.setAvatarUrl(avatarUrl);
+        StudentProfile saved = studentProfileRepository.save(profile);
+
+        return studentProfileMapper.toResponse(saved);
+    }
+
     @Transactional
     public StudentProfile createProfile(User user) {
 
