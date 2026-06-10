@@ -1,5 +1,5 @@
 CREATE TABLE teacher_profiles (
-                                  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                  id BIGSERIAL PRIMARY KEY,
                                   user_id BIGINT NOT NULL UNIQUE,
                                   employee_number VARCHAR(20) NOT NULL UNIQUE,
                                   department VARCHAR(100),

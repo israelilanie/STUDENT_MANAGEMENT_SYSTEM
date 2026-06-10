@@ -1,5 +1,5 @@
 CREATE TABLE users (
-                       id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                       id BIGSERIAL PRIMARY KEY,
                        email VARCHAR(255) NOT NULL UNIQUE,
                        password VARCHAR(255) NOT NULL,
                        first_name VARCHAR(100) NOT NULL,
