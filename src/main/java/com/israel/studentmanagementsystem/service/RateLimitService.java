@@ -21,9 +21,9 @@ public class RateLimitService {
                 Bucket.builder()
                         .addLimit(
                                 Bandwidth.classic(
-                                        3,
+                                        10,
                                         Refill.greedy(
-                                                3,
+                                                10,
                                                 Duration.ofMinutes(1)
                                         )
                                 )
