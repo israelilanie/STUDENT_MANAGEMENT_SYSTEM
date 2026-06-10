@@ -6,7 +6,7 @@ CREATE TABLE enrollments (
                              enrolled_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                              dropped_at TIMESTAMP,
                              final_grade VARCHAR(5),
-                             grade_points DOUBLE,
+                             grade_points DOUBLE PRECISION,
                              version INTEGER DEFAULT 0,
                              CONSTRAINT fk_enrollment_student
                                  FOREIGN KEY (student_id) REFERENCES student_profiles(id),

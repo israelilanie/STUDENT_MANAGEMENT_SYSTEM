@@ -4,7 +4,7 @@ CREATE TABLE student_profiles (
                                   student_number VARCHAR(20) NOT NULL UNIQUE,
                                   date_of_birth DATE,
                                   enrollment_date DATE NOT NULL,
-                                  current_gpa DOUBLE DEFAULT 0.0,
+                                  current_gpa DOUBLE PRECISION DEFAULT 0.0,
                                   total_credits INTEGER DEFAULT 0,
                                   status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
                                   avatar_url VARCHAR(500),
